@@ -1,10 +1,10 @@
 package PoSql
 
-
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
 	"log"
+
+	_ "github.com/lib/pq"
 )
 
 type DatabaseCreator struct {
@@ -26,7 +26,7 @@ func (dc DatabaseCreator) Table(table string) DatabaseCreator {
 		dc.queries = append(dc.queries, dc.query_str+")")
 		dc.query_str = ""
 	}
-	dc.query_str += "CREATE TABLE IF NOT EXISTS " + table + " ("
+	dc.query_str += "CREATE TABLE [IF NOT EXISTS] " + table + " ("
 	return dc
 }
 
@@ -36,7 +36,7 @@ func (dc DatabaseCreator) Column(name string, dataType string) DatabaseCreator {
 }
 
 func (dc DatabaseCreator) ID() DatabaseCreator {
-	dc.query_str += "id BIGINT (20) serial PRIMARY KEY,"
+	dc.query_str += "id serial PRIMARY KEY,"
 	return dc
 }
 func (dc DatabaseCreator) Integer(name string) DatabaseCreator {
