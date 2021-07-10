@@ -1,10 +1,11 @@
 package PoSql
 
 import (
-"database/sql"
+	"database/sql"
+	"math"
+	"strconv"
+
 	_ "github.com/lib/pq"
-"math"
-"strconv"
 )
 
 type QueryBuilder struct {
@@ -20,7 +21,7 @@ type Variables struct {
 	orderBy        string
 	limitOffset    string
 	args           []interface{}
-	currentNum int
+	currentNum     int
 }
 
 func (b QueryBuilder) QueryBuilder(db *sql.DB) QueryBuilder {
@@ -57,7 +58,7 @@ func (b QueryBuilder) Where(column string, value interface{}) QueryBuilder {
 		b.val.whereStatement += " AND " + column + " = $" + strconv.Itoa(b.val.currentNum) + " "
 	}
 	b.val.args = append(b.val.args, value)
-	b.val.currentNum = 	b.val.currentNum + 1
+	b.val.currentNum = b.val.currentNum + 1
 	return b
 }
 
@@ -89,11 +90,10 @@ func (b QueryBuilder) OrWhereIsNotNull(column string) QueryBuilder {
 	return b
 }
 
-
 func (b QueryBuilder) OrWhere(column string, value interface{}) QueryBuilder {
 	b.val.whereStatement += " OR " + column + " = $" + strconv.Itoa(b.val.currentNum) + " "
 	b.val.args = append(b.val.args, value)
-	b.val.currentNum = 	b.val.currentNum + 1
+	b.val.currentNum = b.val.currentNum + 1
 	return b
 }
 
@@ -104,7 +104,7 @@ func (b QueryBuilder) WhereWithOperation(column string, operation string, value 
 		b.val.whereStatement += " AND " + column + " " + operation + " = $" + strconv.Itoa(b.val.currentNum) + " "
 	}
 	b.val.args = append(b.val.args, value)
-	b.val.currentNum = 	b.val.currentNum + 1
+	b.val.currentNum = b.val.currentNum + 1
 
 	return b
 }
@@ -112,7 +112,7 @@ func (b QueryBuilder) WhereWithOperation(column string, operation string, value 
 func (b QueryBuilder) OrWhereWithOperation(column string, operation string, value interface{}) QueryBuilder {
 	b.val.whereStatement += " OR " + column + " " + operation + " = $" + strconv.Itoa(b.val.currentNum) + " "
 	b.val.args = append(b.val.args, value)
-	b.val.currentNum = 	b.val.currentNum + 1
+	b.val.currentNum = b.val.currentNum + 1
 	return b
 }
 
@@ -139,8 +139,8 @@ func (b QueryBuilder) buildQuery(SqlType int) string {
 		}
 		query += ") VALUES ("
 		for _ = range b.val.columns {
-			query +=  " $" + strconv.Itoa(b.val.currentNum) + " ,"
-			b.val.currentNum = 	b.val.currentNum + 1
+			query += " $" + strconv.Itoa(b.val.currentNum) + " ,"
+			b.val.currentNum = b.val.currentNum + 1
 		}
 		if last := len(query) - 1; last >= 0 && query[last] == ',' {
 			query = query[:last]
@@ -165,8 +165,8 @@ func (b QueryBuilder) buildQuery(SqlType int) string {
 	case 2:
 		query = "UPDATE " + b.val.table + " SET "
 		for i := range b.val.setColumns {
-			query += b.val.setColumns[i] + " = $"+ strconv.Itoa(b.val.currentNum) +" ,"
-			b.val.currentNum = 	b.val.currentNum + 1
+			query += b.val.setColumns[i] + " = $" + strconv.Itoa(b.val.currentNum) + " ,"
+			b.val.currentNum = b.val.currentNum + 1
 		}
 		if last := len(query) - 1; last >= 0 && query[last] == ',' {
 			query = query[:last]
@@ -238,7 +238,7 @@ func (b QueryBuilder) Update(columns []string, values ...interface{}) sql.Result
 func (b QueryBuilder) Delete() int64 {
 	query := b.buildQuery(3)
 	res, err := b.val.db.Exec(query, b.val.args...)
-	if err != nil{
+	if err != nil {
 		print(err.Error())
 	}
 	count, err := res.RowsAffected()
@@ -271,6 +271,6 @@ func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel 
 	return paginateModel
 }
 
-func (b QueryBuilder) Connection()  *sql.DB {
+func (b QueryBuilder) Connection() *sql.DB {
 	return b.val.db
 }

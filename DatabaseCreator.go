@@ -26,7 +26,7 @@ func (dc DatabaseCreator) Table(table string) DatabaseCreator {
 		dc.queries = append(dc.queries, dc.query_str+")")
 		dc.query_str = ""
 	}
-	dc.query_str += "CREATE TABLE [IF NOT EXISTS] " + table + " ("
+	dc.query_str += "CREATE TABLE IF NOT EXISTS " + table + " ("
 	return dc
 }
 
@@ -36,19 +36,19 @@ func (dc DatabaseCreator) Column(name string, dataType string) DatabaseCreator {
 }
 
 func (dc DatabaseCreator) ID() DatabaseCreator {
-	dc.query_str += "id serial PRIMARY KEY,"
+	dc.query_str += "id bigserial, PRIMARY KEY (id), "
 	return dc
 }
 func (dc DatabaseCreator) Integer(name string) DatabaseCreator {
-	return dc.Column(name, "INT (255)")
+	return dc.Column(name, "INT")
 }
 
 func (dc DatabaseCreator) String(name string) DatabaseCreator {
-	return dc.Column(name, "VARCHAR (255)")
+	return dc.Column(name, "VARCHAR")
 }
 
-func (dc DatabaseCreator) DateTime(name string) DatabaseCreator {
-	return dc.Column(name, "DATETIME")
+func (dc DatabaseCreator) Timestamp(name string) DatabaseCreator {
+	return dc.Column(name, "timestamp")
 }
 func (dc DatabaseCreator) Text(name string) DatabaseCreator {
 	return dc.Column(name, "Text")
@@ -59,6 +59,7 @@ func (dc DatabaseCreator) Init() {
 	}
 	dc.queries = append(dc.queries, dc.query_str+")")
 	for i := range dc.queries {
+		print(dc.queries[i] + "\n")
 		_, err := dc.connection.Query(dc.queries[i])
 		if err != nil {
 			log.Print(err.Error())
