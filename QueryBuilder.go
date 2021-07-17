@@ -236,17 +236,16 @@ func (b QueryBuilder) Delete() (int64,error) {
 	return count,err
 
 }
-func (b QueryBuilder) Count() (int,error) {
+func (b QueryBuilder) Count() int {
 	b.val.columns = nil
 	b.val.columns = append(b.val.columns, "COUNT(*) AS total")
 	var total int
 	err := b.First().Scan(&total)
-	return total,err
+	return total
 }
 
 func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel {
-	count,_ := b.Count()	
-	totalPages := int(math.Ceil(float64(count / itemsPerPage)))
+	totalPages := int(math.Ceil(float64(b.Count() / itemsPerPage)))
 	limitInt := (currentPage - 1) * itemsPerPage
 	b.Limit(itemsPerPage, limitInt)
 	var paginateModel PaginateModel
