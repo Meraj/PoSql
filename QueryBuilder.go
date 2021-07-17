@@ -240,7 +240,7 @@ func (b QueryBuilder) Count() int {
 	b.val.columns = nil
 	b.val.columns = append(b.val.columns, "COUNT(*) AS total")
 	var total int
-	err := b.First().Scan(&total)
+	b.First().Scan(&total)
 	return total
 }
 
