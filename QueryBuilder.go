@@ -209,15 +209,12 @@ func (b QueryBuilder) First() *sql.Row {
 	return row
 }
 
-func (b QueryBuilder) Get() *sql.Rows {
+func (b QueryBuilder) Get() (*sql.Rows,error) {
 	row, err := b.val.db.Query(b.buildQuery(1), b.val.args...)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
-	}
-	return row
+	return row,err
 }
 
-func (b QueryBuilder) Update(columns []string, values ...interface{}) sql.Result {
+func (b QueryBuilder) Update(columns []string, values ...interface{}) (sql.Result,error) {
 	b.val.setColumns = columns
 	queryValues := b.val.args
 	b.val.args = nil
@@ -229,23 +226,14 @@ func (b QueryBuilder) Update(columns []string, values ...interface{}) sql.Result
 	}
 	query := b.buildQuery(2)
 	res, err := b.val.db.Exec(query, b.val.args...)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
-	}
-	return res
+	return res,err
 }
 
-func (b QueryBuilder) Delete() int64 {
+func (b QueryBuilder) Delete() (int64,error) {
 	query := b.buildQuery(3)
 	res, err := b.val.db.Exec(query, b.val.args...)
-	if err != nil {
-		print(err.Error())
-	}
 	count, err := res.RowsAffected()
-	if err != nil {
-		print(err.Error())
-	}
-	return count
+	return count,err
 
 }
 func (b QueryBuilder) Count() int {
