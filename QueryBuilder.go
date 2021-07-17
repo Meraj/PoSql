@@ -245,7 +245,8 @@ func (b QueryBuilder) Count() (int,error) {
 }
 
 func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel {
-	totalPages := int(math.Ceil(float64(b.Count() / itemsPerPage)))
+	count,_ := b.Count()	
+	totalPages := int(math.Ceil(float64(count / itemsPerPage)))
 	limitInt := (currentPage - 1) * itemsPerPage
 	b.Limit(itemsPerPage, limitInt)
 	var paginateModel PaginateModel
