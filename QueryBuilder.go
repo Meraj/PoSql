@@ -236,15 +236,12 @@ func (b QueryBuilder) Delete() (int64,error) {
 	return count,err
 
 }
-func (b QueryBuilder) Count() int {
+func (b QueryBuilder) Count() (int,error) {
 	b.val.columns = nil
 	b.val.columns = append(b.val.columns, "COUNT(*) AS total")
 	var total int
 	err := b.First().Scan(&total)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
-	}
-	return total
+	return total,err
 }
 
 func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel {
