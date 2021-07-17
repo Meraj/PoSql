@@ -255,7 +255,7 @@ func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel 
 	paginateModel.TotalPages = totalPages + 1
 	paginateModel.CurrentPage = currentPage
 	paginateModel.ResultsPerPage = itemsPerPage
-	paginateModel.Rows = b.Get()
+	paginateModel.Rows,_ = b.Get()
 	return paginateModel
 }
 
