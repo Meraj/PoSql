@@ -190,17 +190,12 @@ func (b QueryBuilder) buildQuery(SqlType int) string {
 func (b QueryBuilder) Insert(columns []string, values ...interface{}) (int64,error) {
 	b.val.columns = columns
 	b.val.args = values
-	var err error
 	var id int64
-	query := b.buildQuery(0)
-	res, err2 := b.val.db.Exec(query, b.val.args...)
-	err = err2
+	query := b.buildQuery(0) + " RETURNING id"
+	err := b.val.db.QueryRow(query, b.val.args...).Scan(&id)
 	if err != nil{
 		id = 0
-	}else{
-		id, err = res.LastInsertId()
 	}
-	
 	return id,err
 }
 
