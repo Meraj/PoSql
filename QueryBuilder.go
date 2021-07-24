@@ -187,21 +187,21 @@ func (b QueryBuilder) buildQuery(SqlType int) string {
 	}
 	return query
 }
-func (b QueryBuilder) Insert(columns []string, values ...interface{}) int64 {
+func (b QueryBuilder) Insert(columns []string, values ...interface{}) (int64,error) {
 	b.val.columns = columns
 	b.val.args = values
+	var err error
+	var id int64
 	query := b.buildQuery(0)
-	res, err := b.val.db.Exec(query, b.val.args...)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
-	} else {
-		id, err := res.LastInsertId()
-		if err == nil {
-
-			return id
-		}
+	res, err2 := b.val.db.Exec(query, b.val.args...)
+	err = err2
+	if err != nil{
+		id = 0
+	}else{
+		id, err = res.LastInsertId()
 	}
-	return 0
+	
+	return id,err
 }
 
 func (b QueryBuilder) First() *sql.Row {
