@@ -110,6 +110,7 @@ func (qb QueryBuilder) WhereIn(column string,values ...interface{}){
 		qb.vars.currentNum = qb.vars.currentNum + 1
 	}
 	qb.vars.args = append(qb.vars.args,values...)
+	return qb
 }
 
 func (qb QueryBuilder) OrWhereIn(column string,values ...interface{}){
@@ -119,6 +120,7 @@ func (qb QueryBuilder) OrWhereIn(column string,values ...interface{}){
 		qb.vars.currentNum = qb.vars.currentNum + 1
 	}
 	qb.vars.args = append(qb.vars.args,values...)
+	return qb
 }
 
 func (qb QueryBuilder) OrderBy(column string, orderType string) QueryBuilder {

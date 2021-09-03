@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="29739d9b-77d5-4bc8-bc79-9441395db255" name="Changes" comment="" />
+    <list default="true" id="29739d9b-77d5-4bc8-bc79-9441395db255" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/QueryBuilder.go" beforeDir="false" afterPath="$PROJECT_DIR$/QueryBuilder.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
