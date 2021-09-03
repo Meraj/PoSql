@@ -99,6 +99,28 @@ func (qb QueryBuilder) OrWhereWithOperation(column string, operation string, val
 	return qb
 }
 
+func (qb QueryBuilder) WhereIn(column string,values ...interface{}){
+	if qb.vars.whereStatement == "" {
+		qb.vars.whereStatement = " WHERE " + column + " IN ( "
+	} else {
+		qb.vars.whereStatement += " AND " + column + " IN ( "
+	}
+	for range values{
+		qb.vars.whereStatement += "$"+ strconv.Itoa(qb.vars.currentNum)+","
+		qb.vars.currentNum = qb.vars.currentNum + 1
+	}
+	qb.vars.args = append(qb.vars.args,values...)
+}
+
+func (qb QueryBuilder) OrWhereIn(column string,values ...interface{}){
+	qb.vars.whereStatement += " OR " + column + " IN ( "
+	for range values{
+		qb.vars.whereStatement += "$"+ strconv.Itoa(qb.vars.currentNum)+","
+		qb.vars.currentNum = qb.vars.currentNum + 1
+	}
+	qb.vars.args = append(qb.vars.args,values...)
+}
+
 func (qb QueryBuilder) OrderBy(column string, orderType string) QueryBuilder {
 	qb.vars.orderBy = "ORDER BY " + column + " " + orderType
 	return qb
