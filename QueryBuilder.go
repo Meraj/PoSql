@@ -9,7 +9,7 @@ import (
 )
 
 type QueryBuilder struct {
-	db *sql.DB
+	DB *sql.DB
 
 	vars Variables
 }
@@ -180,7 +180,7 @@ func (qb QueryBuilder) Insert(theData map[string]interface{}) (int64, error) {
 		qb.vars.args = append(qb.vars.args, element)
 	}
 	var id int64
-	err := qb.db.QueryRow(qb.buildQuery(0), qb.vars.args...).Scan(&id)
+	err := qb.DB.QueryRow(qb.buildQuery(0), qb.vars.args...).Scan(&id)
 	qb.vars.args = nil
 	if err != nil {
 		id = 0
@@ -189,13 +189,13 @@ func (qb QueryBuilder) Insert(theData map[string]interface{}) (int64, error) {
 }
 
 func (qb QueryBuilder) First() *sql.Row {
-	row := qb.db.QueryRow(qb.buildQuery(1), qb.vars.args...)
+	row := qb.DB.QueryRow(qb.buildQuery(1), qb.vars.args...)
 	qb.vars.args = nil
 	return row
 }
 
 func (qb QueryBuilder) Get() (*sql.Rows, error) {
-	row, err := qb.db.Query(qb.buildQuery(1), qb.vars.args...)
+	row, err := qb.DB.Query(qb.buildQuery(1), qb.vars.args...)
 	qb.vars.args = nil
 	return row, err
 }
@@ -206,13 +206,13 @@ func (qb QueryBuilder) Update(theData map[string]interface{}) (sql.Result, error
 		qb.vars.columns = append(qb.vars.columns, key)
 		qb.vars.args = append(qb.vars.args, element)
 	}
-	res, err := qb.db.Exec(qb.buildQuery(2), qb.vars.args...)
+	res, err := qb.DB.Exec(qb.buildQuery(2), qb.vars.args...)
 	qb.vars.args = nil
 	return res, err
 }
 
 func (qb QueryBuilder) Delete() (int64, error) {
-	res, err := qb.db.Exec(qb.buildQuery(3), qb.vars.args...)
+	res, err := qb.DB.Exec(qb.buildQuery(3), qb.vars.args...)
 	count, err := res.RowsAffected()
 	qb.vars.args = nil
 	return count, err

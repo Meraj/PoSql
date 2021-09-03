@@ -11,7 +11,7 @@ type DatabaseCreator struct {
 	tableStr string
 	queryStr string
 	queries  []string
-	db *sql.DB
+	DB *sql.DB
 }
 func (dc DatabaseCreator) Table(table string) DatabaseCreator {
 	if dc.queryStr != "" {
@@ -54,7 +54,7 @@ func (dc DatabaseCreator) Init() {
 	}
 	dc.queries = append(dc.queries, dc.queryStr+")")
 	for i := range dc.queries {
-		_, err := dc.db.Query(dc.queries[i])
+		_, err := dc.DB.Query(dc.queries[i])
 		if err != nil {
 			log.Print(err.Error())
 		}
