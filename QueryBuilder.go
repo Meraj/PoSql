@@ -99,7 +99,7 @@ func (qb QueryBuilder) OrWhereWithOperation(column string, operation string, val
 	return qb
 }
 
-func (qb QueryBuilder) WhereIn(column string,values ...interface{}){
+func (qb QueryBuilder) WhereIn(column string,values ...interface{}) QueryBuilder{
 	if qb.vars.whereStatement == "" {
 		qb.vars.whereStatement = " WHERE " + column + " IN ( "
 	} else {
@@ -113,7 +113,7 @@ func (qb QueryBuilder) WhereIn(column string,values ...interface{}){
 	return qb
 }
 
-func (qb QueryBuilder) OrWhereIn(column string,values ...interface{}){
+func (qb QueryBuilder) OrWhereIn(column string,values ...interface{}) QueryBuilder{
 	qb.vars.whereStatement += " OR " + column + " IN ( "
 	for range values{
 		qb.vars.whereStatement += "$"+ strconv.Itoa(qb.vars.currentNum)+","
