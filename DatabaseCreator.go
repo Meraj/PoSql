@@ -8,35 +8,30 @@ import (
 )
 
 type DatabaseCreator struct {
-	table_str  string
-	query_str  string
-	queries    []string
-	connection *sql.DB
-}
-
-func (dc DatabaseCreator) DatabaseCreator(db *sql.DB) DatabaseCreator {
-	dc.connection = db
-	return dc
+	tableStr string
+	queryStr string
+	queries  []string
+	db *sql.DB
 }
 func (dc DatabaseCreator) Table(table string) DatabaseCreator {
-	if dc.query_str != "" {
-		if last := len(dc.query_str) - 1; last >= 0 && dc.query_str[last] == ',' {
-			dc.query_str = dc.query_str[:last]
+	if dc.queryStr != "" {
+		if last := len(dc.queryStr) - 1; last >= 0 && dc.queryStr[last] == ',' {
+			dc.queryStr = dc.queryStr[:last]
 		}
-		dc.queries = append(dc.queries, dc.query_str+")")
-		dc.query_str = ""
+		dc.queries = append(dc.queries, dc.queryStr+")")
+		dc.queryStr = ""
 	}
-	dc.query_str += "CREATE TABLE IF NOT EXISTS " + table + " ("
+	dc.queryStr += "CREATE TABLE IF NOT EXISTS " + table + " ("
 	return dc
 }
 
 func (dc DatabaseCreator) Column(name string, dataType string) DatabaseCreator {
-	dc.query_str += name + " " + dataType + ","
+	dc.queryStr += name + " " + dataType + ","
 	return dc
 }
 
 func (dc DatabaseCreator) ID() DatabaseCreator {
-	dc.query_str += "id bigserial, PRIMARY KEY (id), "
+	dc.queryStr += "id bigserial, PRIMARY KEY (id), "
 	return dc
 }
 func (dc DatabaseCreator) Integer(name string) DatabaseCreator {
@@ -54,13 +49,12 @@ func (dc DatabaseCreator) Text(name string) DatabaseCreator {
 	return dc.Column(name, "Text")
 }
 func (dc DatabaseCreator) Init() {
-	if last := len(dc.query_str) - 1; last >= 0 && dc.query_str[last] == ',' {
-		dc.query_str = dc.query_str[:last]
+	if last := len(dc.queryStr) - 1; last >= 0 && dc.queryStr[last] == ',' {
+		dc.queryStr = dc.queryStr[:last]
 	}
-	dc.queries = append(dc.queries, dc.query_str+")")
+	dc.queries = append(dc.queries, dc.queryStr+")")
 	for i := range dc.queries {
-		print(dc.queries[i] + "\n")
-		_, err := dc.connection.Query(dc.queries[i])
+		_, err := dc.db.Query(dc.queries[i])
 		if err != nil {
 			log.Print(err.Error())
 		}

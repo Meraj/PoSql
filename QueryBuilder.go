@@ -2,21 +2,20 @@ package PoSql
 
 import (
 	"database/sql"
+	_ "github.com/lib/pq"
 	"math"
 	"strconv"
-
-	_ "github.com/lib/pq"
+	"strings"
 )
 
 type QueryBuilder struct {
-	val Variables
+	db *sql.DB
+
+	vars Variables
 }
 type Variables struct {
-	db             *sql.DB
 	table          string
 	columns        []string
-	values         []string
-	setColumns     []string
 	whereStatement string
 	orderBy        string
 	limitOffset    string
@@ -24,149 +23,129 @@ type Variables struct {
 	currentNum     int
 }
 
-func (b QueryBuilder) QueryBuilder(db *sql.DB) QueryBuilder {
-	b.val.db = db
-	b.val.currentNum = 1
-	return b
+func (qb QueryBuilder) Table(table string) QueryBuilder {
+	qb.vars.table = table
+	qb.vars.currentNum = 1
+	return qb
 }
 
-func (b QueryBuilder) Table(table string) QueryBuilder {
-	b.val.table = table
-	return b
+func (qb QueryBuilder) Select(columns ...string) QueryBuilder {
+	qb.vars.columns = append(qb.vars.columns, columns...)
+	return qb
 }
 
-func (b QueryBuilder) SelectColumn(column string) QueryBuilder {
-	b.val.columns = nil
-	b.val.columns = append(b.val.columns, column)
-	return b
-}
-
-func (b QueryBuilder) AddSelect(column string) QueryBuilder {
-	b.val.columns = append(b.val.columns, column)
-	return b
-}
-
-func (b QueryBuilder) SelectColumns(column []string) QueryBuilder {
-	b.val.columns = column
-	return b
-}
-
-func (b QueryBuilder) Where(column string, value interface{}) QueryBuilder {
-	if b.val.whereStatement == "" {
-		b.val.whereStatement = " WHERE " + column + " = $" + strconv.Itoa(b.val.currentNum) + " "
+func (qb QueryBuilder) Where(column string, value interface{}) QueryBuilder {
+	if qb.vars.whereStatement == "" {
+		qb.vars.whereStatement = " WHERE " + column + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
 	} else {
-		b.val.whereStatement += " AND " + column + " = $" + strconv.Itoa(b.val.currentNum) + " "
+		qb.vars.whereStatement += " AND " + column + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
 	}
-	b.val.args = append(b.val.args, value)
-	b.val.currentNum = b.val.currentNum + 1
-	return b
+	qb.vars.args = append(qb.vars.args, value)
+	qb.vars.currentNum = qb.vars.currentNum + 1
+	return qb
 }
 
-func (b QueryBuilder) WhereIsNull(column string) QueryBuilder {
-	if b.val.whereStatement == "" {
-		b.val.whereStatement = " WHERE " + column + " IS NULL "
+func (qb QueryBuilder) WhereIsNull(column string) QueryBuilder {
+	if qb.vars.whereStatement == "" {
+		qb.vars.whereStatement = " WHERE " + column + " IS NULL "
 	} else {
-		b.val.whereStatement += " AND " + column + " IS NULL "
+		qb.vars.whereStatement += " AND " + column + " IS NULL "
 	}
-	return b
+	return qb
 }
 
-func (b QueryBuilder) OrWhereIsNull(column string) QueryBuilder {
-	b.val.whereStatement += " OR " + column + " IS NULL "
-	return b
+func (qb QueryBuilder) OrWhereIsNull(column string) QueryBuilder {
+	qb.vars.whereStatement += " OR " + column + " IS NULL "
+	return qb
 }
 
-func (b QueryBuilder) WhereIsNotNull(column string) QueryBuilder {
-	if b.val.whereStatement == "" {
-		b.val.whereStatement = " WHERE " + column + " IS NOT NULL "
+func (qb QueryBuilder) WhereIsNotNull(column string) QueryBuilder {
+	if qb.vars.whereStatement == "" {
+		qb.vars.whereStatement = " WHERE " + column + " IS NOT NULL "
 	} else {
-		b.val.whereStatement += " AND " + column + " IS NULL "
+		qb.vars.whereStatement += " AND " + column + " IS NULL "
 	}
-	return b
+	return qb
 }
 
-func (b QueryBuilder) OrWhereIsNotNull(column string) QueryBuilder {
-	b.val.whereStatement += " OR " + column + " IS NOT NULL "
-	return b
+func (qb QueryBuilder) OrWhereIsNotNull(column string) QueryBuilder {
+	qb.vars.whereStatement += " OR " + column + " IS NOT NULL "
+	return qb
 }
 
-func (b QueryBuilder) OrWhere(column string, value interface{}) QueryBuilder {
-	b.val.whereStatement += " OR " + column + " = $" + strconv.Itoa(b.val.currentNum) + " "
-	b.val.args = append(b.val.args, value)
-	b.val.currentNum = b.val.currentNum + 1
-	return b
+func (qb QueryBuilder) OrWhere(column string, value interface{}) QueryBuilder {
+	qb.vars.whereStatement += " OR " + column + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
+	qb.vars.args = append(qb.vars.args, value)
+	qb.vars.currentNum = qb.vars.currentNum + 1
+	return qb
 }
 
-func (b QueryBuilder) WhereWithOperation(column string, operation string, value interface{}) QueryBuilder {
-	if b.val.whereStatement == "" {
-		b.val.whereStatement = " WHERE " + column + " " + operation + " = $" + strconv.Itoa(b.val.currentNum) + " "
+func (qb QueryBuilder) WhereWithOperation(column string, operation string, value interface{}) QueryBuilder {
+	if qb.vars.whereStatement == "" {
+		qb.vars.whereStatement = " WHERE " + column + " " + operation + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
 	} else {
-		b.val.whereStatement += " AND " + column + " " + operation + " = $" + strconv.Itoa(b.val.currentNum) + " "
+		qb.vars.whereStatement += " AND " + column + " " + operation + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
 	}
-	b.val.args = append(b.val.args, value)
-	b.val.currentNum = b.val.currentNum + 1
+	qb.vars.args = append(qb.vars.args, value)
+	qb.vars.currentNum = qb.vars.currentNum + 1
 
-	return b
+	return qb
 }
 
-func (b QueryBuilder) OrWhereWithOperation(column string, operation string, value interface{}) QueryBuilder {
-	b.val.whereStatement += " OR " + column + " " + operation + " = $" + strconv.Itoa(b.val.currentNum) + " "
-	b.val.args = append(b.val.args, value)
-	b.val.currentNum = b.val.currentNum + 1
-	return b
+func (qb QueryBuilder) OrWhereWithOperation(column string, operation string, value interface{}) QueryBuilder {
+	qb.vars.whereStatement += " OR " + column + " " + operation + " = $" + strconv.Itoa(qb.vars.currentNum) + " "
+	qb.vars.args = append(qb.vars.args, value)
+	qb.vars.currentNum = qb.vars.currentNum + 1
+	return qb
 }
 
-func (b QueryBuilder) OrderBy(column string, orderType string) QueryBuilder {
-	b.val.orderBy = "ORDER BY " + column + " " + orderType
-	return b
+func (qb QueryBuilder) OrderBy(column string, orderType string) QueryBuilder {
+	qb.vars.orderBy = "ORDER BY " + column + " " + orderType
+	return qb
 }
 
-func (b QueryBuilder) Limit(limit_int int, offset_int int) QueryBuilder {
-	b.val.limitOffset = " LIMIT " + strconv.Itoa(limit_int) + " OFFSET " + strconv.Itoa(offset_int)
-	return b
+func (qb QueryBuilder) Limit(limitInt int, offsetInt int) QueryBuilder {
+	qb.vars.limitOffset = " LIMIT " + strconv.Itoa(limitInt) + " OFFSET " + strconv.Itoa(offsetInt)
+	return qb
 }
 
-func (b QueryBuilder) buildQuery(SqlType int) string {
-	query := ""
+func (qb QueryBuilder) buildQuery(SqlType int) string {
+	var query = ""
 	switch SqlType {
 	case 0:
-		query = "INSERT INTO " + b.val.table + " ("
-		for i := range b.val.columns {
-			query += b.val.columns[i] + ","
-		}
+		qb.vars.currentNum = 1
+		query = "INSERT INTO " + qb.vars.table + " ("
+		query += strings.Join(qb.vars.columns, " ,")
 		if last := len(query) - 1; last >= 0 && query[last] == ',' {
 			query = query[:last]
 		}
 		query += ") VALUES ("
-		for _ = range b.val.columns {
-			query += " $" + strconv.Itoa(b.val.currentNum) + " ,"
-			b.val.currentNum = b.val.currentNum + 1
+		for range qb.vars.columns {
+			query += " $" + strconv.Itoa(qb.vars.currentNum) + " ,"
+			qb.vars.currentNum = qb.vars.currentNum + 1
 		}
+
 		if last := len(query) - 1; last >= 0 && query[last] == ',' {
 			query = query[:last]
 		}
 		query += ")"
-		return query
-		break
+		return query + "  RETURNING id"
 	case 1:
 		query = "SELECT "
-		if b.val.columns == nil {
+		if qb.vars.columns == nil {
 			query += " * "
 		} else {
-			for i := range b.val.columns {
-				query += b.val.columns[i] + ","
-			}
+			query += strings.Join(qb.vars.columns, " ,")
 			if last := len(query) - 1; last >= 0 && query[last] == ',' {
 				query = query[:last]
 			}
 		}
-		query += " FROM " + b.val.table + " "
-		break
+		query += " FROM " + qb.vars.table + " "
 	case 2:
-		query = "UPDATE " + b.val.table + " SET "
-		for i := range b.val.setColumns {
-			query += b.val.setColumns[i] + " = $" + strconv.Itoa(b.val.currentNum) + " ,"
-			b.val.currentNum = b.val.currentNum + 1
+		query = "UPDATE " + qb.vars.table + " SET "
+		for _, column := range qb.vars.columns {
+			query += column + " = $" + strconv.Itoa(qb.vars.currentNum) + " ,"
+			qb.vars.currentNum = qb.vars.currentNum + 1
 		}
 		if last := len(query) - 1; last >= 0 && query[last] == ',' {
 			query = query[:last]
@@ -174,83 +153,87 @@ func (b QueryBuilder) buildQuery(SqlType int) string {
 		break
 
 	case 3:
-		query = "DELETE FROM " + b.val.table + " "
+		query = "DELETE FROM " + qb.vars.table + " "
 	}
-	if b.val.whereStatement != "" {
-		query += " " + b.val.whereStatement
+	if qb.vars.whereStatement != "" {
+		query += " " + qb.vars.whereStatement
+		qb.vars.whereStatement = ""
 	}
-	if b.val.orderBy != "" {
-		query += " " + b.val.orderBy
+	if qb.vars.orderBy != "" {
+		query += " " + qb.vars.orderBy
+		qb.vars.orderBy = ""
 	}
-	if b.val.limitOffset != "" {
-		query += " " + b.val.limitOffset
+	if qb.vars.limitOffset != "" {
+		query += " " + qb.vars.limitOffset
+		qb.vars.limitOffset = ""
 	}
+	qb.vars.columns = nil
+
 	return query
+
 }
-func (b QueryBuilder) Insert(columns []string, values ...interface{}) (int64,error) {
-	b.val.columns = columns
-	b.val.args = values
+func (qb QueryBuilder) Insert(theData map[string]interface{}) (int64, error) {
+	qb.vars.args = nil
+	qb.vars.columns = nil
+	for key, element := range theData {
+		qb.vars.columns = append(qb.vars.columns, key)
+		qb.vars.args = append(qb.vars.args, element)
+	}
 	var id int64
-	query := b.buildQuery(0) + " RETURNING id"
-	err := b.val.db.QueryRow(query, b.val.args...).Scan(&id)
-	if err != nil{
+	err := qb.db.QueryRow(qb.buildQuery(0), qb.vars.args...).Scan(&id)
+	qb.vars.args = nil
+	if err != nil {
 		id = 0
 	}
-	return id,err
+	return id, err
 }
 
-func (b QueryBuilder) First() *sql.Row {
-	row := b.val.db.QueryRow(b.buildQuery(1), b.val.args...)
+func (qb QueryBuilder) First() *sql.Row {
+	row := qb.db.QueryRow(qb.buildQuery(1), qb.vars.args...)
+	qb.vars.args = nil
 	return row
 }
 
-func (b QueryBuilder) Get() (*sql.Rows,error) {
-	row, err := b.val.db.Query(b.buildQuery(1), b.val.args...)
-	return row,err
+func (qb QueryBuilder) Get() (*sql.Rows, error) {
+	row, err := qb.db.Query(qb.buildQuery(1), qb.vars.args...)
+	qb.vars.args = nil
+	return row, err
 }
 
-func (b QueryBuilder) Update(columns []string, values ...interface{}) (sql.Result,error) {
-	b.val.setColumns = columns
-	queryValues := b.val.args
-	b.val.args = nil
-	for i := range values {
-		b.val.args = append(b.val.args, values[i])
+func (qb QueryBuilder) Update(theData map[string]interface{}) (sql.Result, error) {
+	qb.vars.columns = nil
+	for key, element := range theData {
+		qb.vars.columns = append(qb.vars.columns, key)
+		qb.vars.args = append(qb.vars.args, element)
 	}
-	for i := range queryValues {
-		b.val.args = append(b.val.args, queryValues[i])
-	}
-	query := b.buildQuery(2)
-	res, err := b.val.db.Exec(query, b.val.args...)
-	return res,err
+	res, err := qb.db.Exec(qb.buildQuery(2), qb.vars.args...)
+	qb.vars.args = nil
+	return res, err
 }
 
-func (b QueryBuilder) Delete() (int64,error) {
-	query := b.buildQuery(3)
-	res, err := b.val.db.Exec(query, b.val.args...)
+func (qb QueryBuilder) Delete() (int64, error) {
+	res, err := qb.db.Exec(qb.buildQuery(3), qb.vars.args...)
 	count, err := res.RowsAffected()
-	return count,err
+	qb.vars.args = nil
+	return count, err
 
 }
-func (b QueryBuilder) Count() int {
-	b.val.columns = nil
-	b.val.columns = append(b.val.columns, "COUNT(*) AS total")
+func (qb QueryBuilder) Count() (int,error) {
+	qb.vars.columns = []string{"COUNT(*) AS total"}
 	var total int
-	b.First().Scan(&total)
-	return total
+	err := qb.First().Scan(&total)
+	return total,err
 }
 
-func (b QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel {
-	totalPages := int(math.Ceil(float64(b.Count() / itemsPerPage)))
+func (qb QueryBuilder) Paginate(itemsPerPage int, currentPage int) PaginateModel {
+	count,_ :=qb.Count()
+	totalPages := int(math.Ceil(float64(count / itemsPerPage)))
 	limitInt := (currentPage - 1) * itemsPerPage
-	b.Limit(itemsPerPage, limitInt)
+	qb.Limit(itemsPerPage, limitInt)
 	var paginateModel PaginateModel
 	paginateModel.TotalPages = totalPages + 1
 	paginateModel.CurrentPage = currentPage
 	paginateModel.ResultsPerPage = itemsPerPage
-	paginateModel.Rows,_ = b.Get()
+	paginateModel.Rows, _ = qb.Get()
 	return paginateModel
-}
-
-func (b QueryBuilder) Connection() *sql.DB {
-	return b.val.db
 }
