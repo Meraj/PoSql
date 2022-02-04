@@ -1,4 +1,4 @@
-module PoSql
+module github.com/Meraj/PoSql
 
 go 1.16
 
